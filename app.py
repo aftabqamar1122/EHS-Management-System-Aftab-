@@ -44,11 +44,11 @@ LOGIN_FILE = "login_data.xlsx"
 
 # User credentials (in production, use hashed passwords)
 USERS = {
-    "mahati": {"password": "brainwave", "role": "admin"},
-    "nida": {"password": "brainwave", "role": "user"},
-    "mariyam": {"password": "brainwave", "role": "user"},
-    "siva": {"password": "brainwave", "role": "admin"},
-    "rohan": {"password": "brainwave", "role": "admin"}
+    "Aftab": {"password": "Aftab1122", "role": "admin"},
+    "Mukesh": {"password": "Mukesh1122", "role": "user"},
+    "Himanshu": {"password": "Himanshu1122", "role": "user"},
+    "Sunil": {"password": "Sunil1122", "role": "admin"},
+    "Zeidan": {"password": "Zeidan1122", "role": "admin"}
 }
 
 EDITOR_ROLES = ["admin"]
