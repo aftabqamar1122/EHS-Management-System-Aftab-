@@ -8,6 +8,8 @@ import uuid
 from io import BytesIO
 from PIL import Image
 import json
+import warnings
+warnings.filterwarnings('ignore')
 
 # ============================================
 # CONFIGURATION
@@ -17,7 +19,8 @@ import json
 st.set_page_config(
     layout="wide",
     page_title="EHS Management System",
-    page_icon="🛡️"
+    page_icon="🛡️",
+    initial_sidebar_state="expanded"
 )
 
 # Create directories for storing files
@@ -427,7 +430,11 @@ def main():
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
             with st.container():
-                st.image("logo1.jpg", width=200) if os.path.exists("logo1.jpg") else None
+                # Try to load logo if exists
+                try:
+                    st.image("logo1.jpg", width=200) if os.path.exists("logo1.jpg") else None
+                except:
+                    pass
                 st.markdown("---")
                 st.subheader("🔐 Please Login")
                 
