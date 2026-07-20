@@ -1,0 +1,12 @@
+ehs_management_system/
+├── app.py                 # Main application file
+├── requirements.txt       # Python dependencies
+├── .streamlit/           
+│   └── config.toml       # Streamlit configuration
+├── uploads/              # File upload directory
+│   ├── injury_photos/
+│   ├── fir_documents/
+│   ├── meeting_minutes/
+│   ├── cost_bills/
+│   └── aspect_images/
+└── README.md
