@@ -42,10 +42,10 @@ ASPECT_FILE = "aspect_impact_sheet.xlsx"
 LOGIN_FILE = "login_data.xlsx"
 
 # ============================================
-# AUTHENTICATION - UPDATED USERS
+# AUTHENTICATION - FIXED CREDENTIALS
 # ============================================
 
-# User credentials with your custom users
+# User credentials - CASE SENSITIVE
 USERS = {
     "Aftab": {"password": "Aftab1122", "role": "admin"},
     "Mukesh": {"password": "Mukesh1122", "role": "user"},
@@ -79,8 +79,27 @@ def log_activity(username, action):
     df.to_excel(LOGIN_FILE, index=False)
 
 def verify_login(username, password):
-    """Verify user credentials"""
-    return username in USERS and USERS[username]["password"] == password
+    """Verify user credentials - FIXED with debug info"""
+    # Debug print to console
+    print(f"Attempting login - Username: '{username}', Password: '{password}'")
+    print(f"Available users: {list(USERS.keys())}")
+    
+    # Check if username exists
+    if username in USERS:
+        print(f"User found: {username}")
+        print(f"Stored password: '{USERS[username]['password']}'")
+        print(f"Entered password: '{password}'")
+        
+        # Check password
+        if USERS[username]["password"] == password:
+            print("Password match!")
+            return True
+        else:
+            print("Password mismatch!")
+            return False
+    else:
+        print(f"User '{username}' not found!")
+        return False
 
 def is_editor(username):
     """Check if user has edit permissions"""
@@ -113,7 +132,6 @@ def load_sheet(file_path, sheet_name):
 
 def save_sheet(file_path, sheet_name, df):
     """Save a DataFrame to a specific sheet in Excel file"""
-    # Load all existing sheets
     sheets_data = {}
     try:
         with pd.ExcelFile(file_path) as xls:
@@ -123,10 +141,8 @@ def save_sheet(file_path, sheet_name, df):
     except:
         pass
     
-    # Add/update the target sheet
     sheets_data[sheet_name] = df
     
-    # Write all sheets back
     with pd.ExcelWriter(file_path, engine='openpyxl') as writer:
         for s_name, s_df in sheets_data.items():
             s_df.to_excel(writer, sheet_name=s_name, index=False)
@@ -420,37 +436,55 @@ def main():
         st.session_state.edit_mode = False
     
     # ============================================
-    # LOGIN PAGE
+    # LOGIN PAGE - FIXED
     # ============================================
     
     if not st.session_state.logged_in:
         st.title("🛡️ EHS Management System")
         st.subheader("Environment, Health & Safety")
         
+        # Display available users for debugging (remove in production)
+        with st.expander("📋 Available Users (Click to see)"):
+            st.write("Use these credentials to login:")
+            for user, info in USERS.items():
+                st.write(f"• **{user}** (Password: {info['password']}) - Role: {info['role']}")
+        
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
             with st.container():
-                # Try to load logo if exists
                 try:
-                    st.image("logo1.jpg", width=200) if os.path.exists("logo1.jpg") else None
+                    if os.path.exists("logo1.jpg"):
+                        st.image("logo1.jpg", width=200)
                 except:
                     pass
                 st.markdown("---")
                 st.subheader("🔐 Please Login")
                 
                 with st.form("login_form"):
-                    username = st.text_input("Username", placeholder="Enter your username")
-                    password = st.text_input("Password", type="password", placeholder="Enter your password")
+                    username = st.text_input("Username", placeholder="Enter your username", value="")
+                    password = st.text_input("Password", type="password", placeholder="Enter your password", value="")
                     
-                    if st.form_submit_button("Login", use_container_width=True):
-                        if verify_login(username, password):
-                            st.session_state.logged_in = True
-                            st.session_state.username = username
-                            log_activity(username, "Login")
-                            st.success("✅ Login successful!")
-                            st.rerun()
+                    submitted = st.form_submit_button("Login", use_container_width=True)
+                    
+                    if submitted:
+                        # Debug info
+                        st.write(f"Debug: Trying to login with username: '{username}'")
+                        
+                        # Check if username exists
+                        if username in USERS:
+                            stored_password = USERS[username]["password"]
+                            st.write(f"Debug: User found, checking password...")
+                            
+                            if password == stored_password:
+                                st.session_state.logged_in = True
+                                st.session_state.username = username
+                                log_activity(username, "Login")
+                                st.success("✅ Login successful!")
+                                st.rerun()
+                            else:
+                                st.error(f"❌ Invalid password for user '{username}'. Please check your password.")
                         else:
-                            st.error("❌ Invalid username or password!")
+                            st.error(f"❌ User '{username}' not found. Please check your username.")
         
         return
     
@@ -534,7 +568,6 @@ def main():
         placeholder_page("🌿 Conservation in Facility",
                         "Track conservation initiatives and sustainability efforts.")
     else:
-        # Dashboard
         dashboard_page()
 
 # ============================================
@@ -665,7 +698,6 @@ def incident_management_page():
                                       type=["jpg", "jpeg", "png", "pdf"])
             
             if st.form_submit_button("Submit Injury Info", use_container_width=True):
-                # Save files
                 photo_paths = save_multiple_files(injury_photos, DIRECTORIES["injury_photos"], incident_number)
                 fir_path = save_uploaded_file(fir_doc, DIRECTORIES["fir_documents"], incident_number)
                 
@@ -763,11 +795,9 @@ def incident_management_page():
                 if "causes" not in root_data or set(root_data["causes"].keys()) != set(categories):
                     root_data["causes"] = {cat: [] for cat in categories}
                 
-                # Display and manage causes
                 for category in categories:
                     st.subheader(f"{category} Factors")
                     
-                    # Existing causes
                     if category in root_data["causes"]:
                         for i, cause in enumerate(root_data["causes"][category]):
                             col1, col2 = st.columns([5, 1])
@@ -780,7 +810,6 @@ def incident_management_page():
                                     st.session_state.root_cause_data[selected] = root_data
                                     st.rerun()
                     
-                    # Add new cause
                     new_cause = st.text_input(f"Add {category} Factor", 
                                              key=f"new_{category}_{selected}")
                     if st.button(f"Add to {category}", key=f"add_{category}_{selected}"):
@@ -789,7 +818,6 @@ def incident_management_page():
                             st.session_state.root_cause_data[selected] = root_data
                             st.rerun()
                 
-                # Fishbone diagram
                 has_causes = any(causes for causes in root_data["causes"].values() if causes)
                 if has_causes:
                     st.subheader("Fishbone Analysis Diagram")
@@ -962,7 +990,6 @@ def incident_management_page():
     with tabs[8]:
         st.header("Incident Report")
         
-        # Individual report
         st.subheader("Search Incident")
         incident_id = st.text_input("Enter Incident Number")
         
@@ -973,7 +1000,6 @@ def incident_management_page():
                 if df.empty:
                     continue
                 
-                # Filter based on appropriate column
                 if sheet == 'Create':
                     filtered = df[df['Incident Number'] == incident_id]
                 elif sheet == 'Injury':
@@ -992,11 +1018,9 @@ def incident_management_page():
                     st.subheader(sheet)
                     st.dataframe(filtered, use_container_width=True)
         
-        # Visualizations
         st.markdown("---")
         st.header("📊 Analytics Dashboard")
         
-        # Load data for charts
         create_df = load_sheet(INCIDENT_FILE, 'Create')
         injury_df = load_sheet(INCIDENT_FILE, 'Injury')
         cost_df = load_sheet(INCIDENT_FILE, 'Costing')
@@ -1029,7 +1053,6 @@ def incident_management_page():
             else:
                 st.info("No cost data available")
         
-        # Editing section
         if is_editor(st.session_state.username):
             st.markdown("---")
             st.subheader("✏️ Edit Data (Admin Only)")
@@ -1057,7 +1080,6 @@ def aspect_impact_page():
     """Aspect/Impact Assessment module"""
     st.title("📊 Aspect/Impact Management")
     
-    # Assessment selection
     col1, col2 = st.columns([2, 1])
     with col1:
         df = load_sheet(ASPECT_FILE, 'Activity')
@@ -1074,11 +1096,9 @@ def aspect_impact_page():
     
     tabs = st.tabs(["Activity", "Aspect/Impact", "Score Card", "CA/PA", "Report"])
     
-    # Tab 1: Activity
     with tabs[0]:
         st.header("Activity Information")
         
-        # Load existing data
         activity_data = {}
         if st.session_state.edit_mode and st.session_state.current_assessment_id:
             df = load_sheet(ASPECT_FILE, 'Activity')
@@ -1109,9 +1129,7 @@ def aspect_impact_page():
                                                value=activity_data.get('Incident Description', ''),
                                                height=100)
             
-            # Assessment number
             if not st.session_state.edit_mode:
-                # Generate new assessment number
                 if not df.empty and 'Aspect/Impact Assessment Number' in df.columns:
                     existing = df['Aspect/Impact Assessment Number'].astype(str).dropna()
                     highest = 0
@@ -1129,7 +1147,6 @@ def aspect_impact_page():
             
             st.info(f"**Assessment Number:** {assessment_number}")
             
-            # Evidence photos
             evidence_photos = st.file_uploader("Evidence Photos", 
                                               type=["jpg", "jpeg", "png"],
                                               accept_multiple_files=True)
@@ -1164,7 +1181,6 @@ def aspect_impact_page():
                 log_activity(st.session_state.username, f"Created/updated aspect assessment: {assessment_number}")
                 st.rerun()
     
-    # Tab 2: Aspect/Impact
     with tabs[1]:
         st.header("Aspect/Impact Analysis")
         
@@ -1256,7 +1272,6 @@ def aspect_impact_page():
                     st.success("✅ Aspect/Impact analysis saved!")
                     log_activity(st.session_state.username, f"Added aspect/impact for assessment: {st.session_state.current_assessment_id}")
     
-    # Tab 3: Score Card
     with tabs[2]:
         st.header("Risk Score Card")
         
@@ -1292,7 +1307,6 @@ def aspect_impact_page():
                 
                 rpn = severity * occurrence * detection
                 
-                # Risk level
                 if rpn <= 50:
                     risk_level = "Low Risk"
                     risk_color = "green"
@@ -1332,14 +1346,12 @@ def aspect_impact_page():
                     st.success("✅ Score Card saved!")
                     log_activity(st.session_state.username, f"Added score card for assessment: {st.session_state.current_assessment_id}")
     
-    # Tab 4: CA/PA
     with tabs[3]:
         st.header("Corrective/Preventive Actions")
         
         if not st.session_state.current_assessment_id:
             st.warning("⚠️ Please save Activity information first.")
         else:
-            # Existing actions
             df = load_sheet(ASPECT_FILE, 'CAPA')
             filtered = df[df['Assessment Number'] == st.session_state.current_assessment_id]
             
@@ -1347,7 +1359,6 @@ def aspect_impact_page():
                 st.subheader("Existing Actions")
                 st.dataframe(filtered.drop(columns=['Assessment Number']), use_container_width=True)
             
-            # Add new action
             st.subheader("Add New Action")
             with st.form("capa_form_ai"):
                 col1, col2 = st.columns(2)
@@ -1383,26 +1394,22 @@ def aspect_impact_page():
                     log_activity(st.session_state.username, f"Added CA/PA for assessment: {st.session_state.current_assessment_id}")
                     st.rerun()
     
-    # Tab 5: Report
     with tabs[4]:
         st.header("Assessment Report")
         
         if not st.session_state.current_assessment_id:
             st.warning("⚠️ No assessment selected.")
         else:
-            # Load all data
             activity_df = load_sheet(ASPECT_FILE, 'Activity')
             aspect_df = load_sheet(ASPECT_FILE, 'AspectImpact')
             score_df = load_sheet(ASPECT_FILE, 'ScoreCard')
             capa_df = load_sheet(ASPECT_FILE, 'CAPA')
             
-            # Filter for current assessment
             current_activity = activity_df[activity_df['Aspect/Impact Assessment Number'] == st.session_state.current_assessment_id] if not activity_df.empty else pd.DataFrame()
             current_aspect = aspect_df[aspect_df['Assessment Number'] == st.session_state.current_assessment_id] if not aspect_df.empty else pd.DataFrame()
             current_score = score_df[score_df['Assessment Number'] == st.session_state.current_assessment_id] if not score_df.empty else pd.DataFrame()
             current_capa = capa_df[capa_df['Assessment Number'] == st.session_state.current_assessment_id] if not capa_df.empty else pd.DataFrame()
             
-            # Display report
             if not current_activity.empty:
                 st.subheader("Activity Summary")
                 col1, col2 = st.columns(2)
@@ -1443,12 +1450,10 @@ def dashboard_page():
     st.title("🛡️ EHS Management System")
     st.caption(f"Welcome back, {st.session_state.username}! Here's your EHS overview.")
     
-    # Load data
     create_df = load_sheet(INCIDENT_FILE, 'Create')
     injury_df = load_sheet(INCIDENT_FILE, 'Injury')
     cost_df = load_sheet(INCIDENT_FILE, 'Costing')
     
-    # Quick stats
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
@@ -1477,7 +1482,6 @@ def dashboard_page():
     
     st.markdown("---")
     
-    # Charts
     col1, col2 = st.columns(2)
     
     with col1:
@@ -1510,7 +1514,6 @@ def dashboard_page():
         else:
             st.info("No cost data available")
     
-    # Recent activity
     st.markdown("---")
     st.subheader("Recent Activity")
     
