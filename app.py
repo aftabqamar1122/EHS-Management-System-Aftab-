@@ -39,10 +39,10 @@ ASPECT_FILE = "aspect_impact_sheet.xlsx"
 LOGIN_FILE = "login_data.xlsx"
 
 # ============================================
-# AUTHENTICATION
+# AUTHENTICATION - UPDATED USERS
 # ============================================
 
-# User credentials (in production, use hashed passwords)
+# User credentials with your custom users
 USERS = {
     "Aftab": {"password": "Aftab1122", "role": "admin"},
     "Mukesh": {"password": "Mukesh1122", "role": "user"},
@@ -181,18 +181,6 @@ def generate_fishbone_diagram(cause_type, causes):
         borderwidth=2,
         borderpad=6
     )
-    
-    # Category colors
-    category_colors = {
-        "People": "#FF6B6B",
-        "Process": "#4ECDC4",
-        "Equipment": "#45B7D1",
-        "Environment": "#96CEB4",
-        "External Factors": "#FFEAA7",
-        "Regulatory": "#DDA0DD",
-        "Third-party": "#F0A500",
-        "Natural": "#6C5B7B"
-    }
     
     categories = list(causes.keys())
     num_categories = len(categories)
